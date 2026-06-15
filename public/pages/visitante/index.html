@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="../../favicon.ico" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Principal - Sistema Logístico</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <button id="menu-toggle" class="menu-btn" aria-label="Menú lateral">
+        <img src="../../img/icons/menu.svg" alt="Menú" width="26" height="26">
+      </button>
+      <img src="../../img/logoheader.svg" alt="Logo" class="logo">
+      <h1>GESLOC</h1>
+    </div>
+
+    <div class="header-right">
+      <a href="#" class="home-link">
+        <img src="../../img/icons/home.svg" alt="Inicio" width="20" height="20">
+        Inicio
+      </a>
+      <a href="#">
+        <img src="../../img/icons/help.svg" alt="Ayuda" width="20" height="20">
+        Ayuda
+      </a>
+      <span class="user-label">Visitante</span>
+    </div>
+  </header>
+
+  
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <h2>Rol actual:</h2>
+      <p class="role">Visitante</p>
+    </div>
+    <div class="sidebar-content">
+      <h3>General</h3>
+      <button>
+        <img src="../../img/icons/home.svg" alt="Inicio" width="18" height="18">
+        Inicio
+      </button>
+      <h3>Puntos de Venta</h3>
+      <button>Existencia de Recursos</button>
+      <button>Crear Solicitud de Recursos</button>
+      <button>Transferencia de Recursos</button>
+      <h3>Nomencladores</h3>
+      <button>Productos y Servicios</button>
+      <button>Almacenes</button>
+    </div>
+    <div class="sidebar-footer">
+      <button class="logout-btn">Cerrar Sesión</button>
+    </div>
+  </aside>
+
+  <!-- OVERLAY -->
+  <div id="overlay" class="overlay"></div>
+
+  <!-- TOAST -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- MAIN -->
+  <main id="main-content">
+    <section class="home-section">
+      <img src="../../img/logoheader.svg" alt="Logo principal" class="home-logo">
+
+      <h2>Bienvenido a "GESLOC"</h2>
+      <p class="mission">
+        Este es un software dedicado a la gestión y optimización de los recursos logísticos de la Empresa de Telecomunicaciones de Cuba S.A. ETECSA.
+        Nuestro objetivo es garantizar el control eficiente de los procesos de distribución, almacenamiento y actualización de información en tiempo real.
+      </p>
+      <h2>Nuestros Principios son:</h2>
+      <div class="values-container">
+        <div class="value-card">
+          <h4>Eficiencia</h4>
+          <p>Procesos automatizados y ágiles que mejoran la gestión logística.</p>
+        </div>
+        <div class="value-card">
+          <h4>Conectividad</h4>
+          <p>Integración total entre departamentos y centros de distribución.</p>
+        </div>
+        <div class="value-card">
+          <h4>Innovación</h4>
+          <p>Uso de herramientas tecnológicas modernas para el control de datos.</p>
+        </div>
+      </div>
+
+      <h2>Acceso Rápido</h2>
+      <div class="values-container">
+        <div class="value-card" onclick="window.location.href='existencia_recursos.html'" style="cursor:pointer;">
+          <h4>Existencia de Recursos</h4>
+          <p>Consulta el inventario disponible por almacén y artículo.</p>
+        </div>
+        <div class="value-card" onclick="window.location.href='solicitud.html'" style="cursor:pointer;">
+          <h4>Solicitud de Recursos</h4>
+          <p>Crea y gestiona solicitudes de materiales para tu punto de venta.</p>
+        </div>
+        <div class="value-card" onclick="window.location.href='transferencia.html'" style="cursor:pointer;">
+          <h4>Transferencia de Recursos</h4>
+          <p>Registra transferencias de recursos entre almacenes.</p>
+        </div>
+        <div class="value-card" onclick="window.location.href='articulos.html'" style="cursor:pointer;">
+          <h4>Productos y Servicios</h4>
+          <p>Consulta el catálogo de artículos y servicios disponibles.</p>
+        </div>
+        <div class="value-card" onclick="window.location.href='almacenes.html'" style="cursor:pointer;">
+          <h4>Almacenes</h4>
+          <p>Consulta los puntos de venta y sus códigos de almacén.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    © 2025 Empresa de Telecomunicaciones de Cuba S.A. — Todos los derechos reservados.
+  </footer>
+
+    <!-- MODAL DE CONFIRMACIÓN GLOBAL (requerido por modal.js) -->
+<div id="global-confirm" class="confirm-modal hidden">
+  <div class="confirm-box">
+    <p id="global-confirm-msg"></p>
+    <div class="confirm-buttons">
+      <button id="global-confirm-yes" class="btn-confirmar">Confirmar</button>
+      <button id="global-confirm-no"  class="btn-cancelar">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/csrf-fetch.js"></script>
+    <script src="../../js/shared/modal.js"></script>
+  <script src="../../js/inactivity.js"></script>
+<script src="../../js/visitante/main.js"></script>
+</body>
+</html>
