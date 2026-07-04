@@ -1,0 +1,98 @@
+<?php
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/auth_guard_admin.php';
+header('Content-Type: application/json; charset=utf-8');
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    header('Allow: POST');
+    echo json_encode(['success' => false, 'message' => 'Método no permitido.']);
+    exit;
+}
+csrf_verify();
+
+try {
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    if (!isset($data['nombre']) || trim($data['nombre']) === '') {
+        http_response_code(400);
+        echo json_encode(["success" => false, "message" => "Falta el nombre del almacén."]);
+        exit;
+    }
+
+    $nombre = trim($data['nombre']);
+
+    $codigos = [
+        'SAP'          => isset($data['almacen_sap'])        && $data['almacen_sap']        !== '' ? str_pad(trim($data['almacen_sap']),        4, '0', STR_PAD_LEFT) : null,
+        'SIGC'         => isset($data['almacen_sigc'])       && $data['almacen_sigc']        !== '' ? str_pad(trim($data['almacen_sigc']),       4, '0', STR_PAD_LEFT) : null,
+        'TFA'          => isset($data['almacen_tfa'])        && $data['almacen_tfa']         !== '' ? str_pad(trim($data['almacen_tfa']),        4, '0', STR_PAD_LEFT) : null,
+        'Consignación' => isset($data['almacen_consig'])     && $data['almacen_consig']      !== '' ? str_pad(trim($data['almacen_consig']),     4, '0', STR_PAD_LEFT) : null,
+        'Devolución'   => isset($data['almacen_devolucion']) && $data['almacen_devolucion']  !== '' ? str_pad(trim($data['almacen_devolucion']), 4, '0', STR_PAD_LEFT) : null,
+    ];
+
+    $db = new Database();
+    $pdo = $db->getConnection();
+
+
+    // Todas las validaciones y los cambios ocurren dentro de la misma transacción
+    // para evitar race conditions entre la comprobación y la escritura.
+    $pdo->beginTransaction();
+
+    // Verificar que el almacén existe y bloquear sus filas para evitar race conditions.
+    // FOR UPDATE requiere SELECT de filas concretas, no COUNT(*).
+    $check = $pdo->prepare("SELECT 1 FROM cod_almacen WHERE nombre_pv = :nombre LIMIT 1 FOR UPDATE");
+    $check->execute([':nombre' => $nombre]);
+    if (!$check->fetch()) {
+        $pdo->rollBack();
+        http_response_code(404);
+        echo json_encode(["success" => false, "message" => "No se encontró el almacén especificado."]);
+        exit;
+    }
+
+    // Verificar en una sola query que los códigos nuevos no colisionen con OTROS nombres
+    $codigosNoNulos = array_filter($codigos);
+    if (!empty($codigosNoNulos)) {
+        $placeholders = implode(',', array_fill(0, count($codigosNoNulos), '?'));
+        $dup = $pdo->prepare("
+            SELECT codigo_almacen FROM cod_almacen
+            WHERE codigo_almacen IN ($placeholders) AND nombre_pv != ?
+        ");
+        $dup->execute(array_merge(array_values($codigosNoNulos), [$nombre]));
+        $existente = $dup->fetchColumn();
+        if ($existente !== false) {
+            $pdo->rollBack();
+            $tipoEncontrado = array_search($existente, $codigosNoNulos);
+            http_response_code(409);
+            echo json_encode(["success" => false, "message" => "El código $existente ($tipoEncontrado) ya está en uso por otro almacén."]);
+            exit;
+        }
+    }
+
+    // Borrar todas las filas actuales del almacén y reinsertar las nuevas
+    $del = $pdo->prepare("DELETE FROM cod_almacen WHERE nombre_pv = :nombre");
+    $del->execute([':nombre' => $nombre]);
+
+    $stmt = $pdo->prepare("
+        INSERT INTO cod_almacen (codigo_almacen, tipo_almacen, nombre_pv)
+        VALUES (:codigo, :tipo, :nombre)
+    ");
+
+    foreach ($codigos as $tipo => $codigo) {
+        if ($codigo === null) continue;
+        $stmt->execute([
+            ':codigo' => $codigo,
+            ':tipo'   => $tipo,
+            ':nombre' => $nombre
+        ]);
+    }
+
+    $pdo->commit();
+
+    echo json_encode(["success" => true, "message" => "Almacén actualizado correctamente."]);
+
+} catch (Exception $e) {
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+    http_response_code(500);
+    echo json_encode(["success" => false, "message" => "Error de base de datos."]);
+}
+?>
